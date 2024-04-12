@@ -1,0 +1,177 @@
+using System;
+using System.Text;
+
+namespace HashTablePractice
+{
+    internal class Program
+    {
+        // Java - 간단한 HashTable 구현 (https://codechacha.com/ko/java-simple-hashtable-implementation/)
+        // C#버전으로 포팅
+        public class KeyValuePairItem
+        {
+            public string Key { get; private set; }
+            public object Value { get; private set; }
+
+            public KeyValuePairItem(string key, object value)
+            {
+                Key = key;
+                Value = value;
+            }
+        }
+
+        public class HashTable
+        {
+            private const int HASH_TABLE_CAPACITY = 1000;
+            private KeyValuePairItem[] data = new KeyValuePairItem[HASH_TABLE_CAPACITY];
+            private int size = 0;
+
+            private int GetHashCode(string key)
+            {
+                int hash = 0;
+                for (int i = 0; i < key.Length; i++)
+                {
+                    hash = (hash + key[i] * (i + 1)) % HASH_TABLE_CAPACITY;
+                }
+                return hash;
+            }
+
+            private object Get(string key)
+            {
+                if(!string.IsNullOrEmpty(key))
+                {
+                    int hash = GetHashCode(key);
+                    while (data[hash] != null && !data[hash].Key.Equals(key))
+                    {
+                        hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                    }
+                    return data[hash] != null ? data[hash].Value : null;
+                }
+
+                return null;
+            }
+
+            public void Add(string key, object value)
+            {
+                if(!string.IsNullOrEmpty(key))
+                {
+                    int hash = GetHashCode(key);
+                    while (data[hash] != null && !data[hash].Key.Equals(key))
+                    {
+                        hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                    }
+                    data[hash] = new KeyValuePairItem(key, value);
+                    size++;
+                }
+            }
+
+            public void Remove(string key)
+            {
+                if(!string.IsNullOrEmpty(key))
+                {
+                    int hash = GetHashCode(key);
+                    while (data[hash] != null && !data[hash].Key.Equals(key))
+                    {
+                        hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                    }
+
+                    if (data[hash] != null)
+                    {
+                        data[hash] = null;
+                        size--;
+                    }
+                }
+            }
+
+            public int Count
+            {
+                get
+                {
+                    return size;
+                }
+            }
+
+            public object this[string key]
+            {
+                get
+                {
+                    return Get(key);
+                }
+                set
+                {
+                    if (!string.IsNullOrEmpty(key))
+                    {
+                        int hash = GetHashCode(key);
+                        while (data[hash] != null && !data[hash].Key.Equals(key))
+                        {
+                            hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                        }
+
+                        if (data[hash] != null)
+                        {
+                            data[hash] = new KeyValuePairItem(key, value);
+                        }
+                    }
+                }
+            }
+
+            public bool ContainsKey(string key)
+            {
+                if(string.IsNullOrEmpty(key))
+                {
+                    return false;
+                }
+
+                int hash = GetHashCode(key);
+                while (data[hash] != null && !data[hash].Key.Equals(key))
+                {
+                    hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                }
+
+                return data[hash] != null;
+            }
+
+            public string ToString()
+            {
+                StringBuilder sb = new StringBuilder();
+
+                sb.Append("<HashTable>");
+                sb.AppendLine();
+
+                for(int i = 0; i < data.Length; i++)
+                {
+                    KeyValuePairItem item = data[i];
+                    if(item != null)
+                    {
+                        sb.Append($" Key(hash, index) : {item.Key}({GetHashCode(item.Key)}, {i}), Value : {item.Value}");
+                        sb.AppendLine();
+                    }
+                }
+                return sb.ToString();
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            HashTable hashTable = new HashTable();
+            hashTable.Add("Tokyo", "Japan");
+            hashTable.Add("Seoul", "Korea");
+            hashTable.Add("Beijing", "China");
+            hashTable.Add("Paris", "France");
+            hashTable.Add("Washington", "USA");
+            hashTable.Add("Brazilia", "Brazil");
+            Console.WriteLine($"Size : {hashTable.Count}");
+
+            Console.WriteLine(hashTable["Tokyo"]);
+            Console.WriteLine(hashTable["Seoul"]);
+            Console.WriteLine(hashTable["Beijing"]);
+            Console.WriteLine(hashTable["Paris"]);
+            Console.WriteLine(hashTable["Washington"]);
+            Console.WriteLine(hashTable["Brazilia"]);
+
+            hashTable.Remove("Brazilia");
+            Console.WriteLine($"Size : {hashTable.Count}");
+            Console.WriteLine(hashTable["Brazilia"]);
+            Console.WriteLine(hashTable.ToString());
+        }
+    }
+}
