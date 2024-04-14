@@ -1,0 +1,168 @@
+using System;
+using System.Text;
+
+namespace DictionaryPractice
+{
+    internal class Program
+    {
+        // Java - 간단한 HashTable 구현 (https://codechacha.com/ko/java-simple-hashtable-implementation/)
+        // C# Dictionary로 포팅
+        public class KeyValuePairItem<TKey, TValue>
+        {
+            public TKey Key { get; private set; }
+            public TValue Value { get; private set; }
+
+            public KeyValuePairItem(TKey key, TValue value)
+            {
+                Key = key;
+                Value = value;
+            }
+        }
+
+        public class CustomDictionary<TKey, TValue>
+        {
+            private const int HASH_TABLE_CAPACITY = 1000;
+            private KeyValuePairItem<TKey, TValue>[] data = new KeyValuePairItem<TKey, TValue>[HASH_TABLE_CAPACITY];
+            private int size = 0;
+
+            private int GetHashCode(TKey key)
+            {
+                int hash = 0;
+                if (typeof(TKey) == typeof(int))
+                {
+                    hash = Convert.ToInt32(key) % HASH_TABLE_CAPACITY;
+                }
+                else if (typeof(TKey) == typeof(string))
+                {
+                    string strKey = key.ToString();
+                    for (int i = 0; i < strKey.Length; i++)
+                    {
+                        hash = (hash + strKey[i] * (i + 1)) % HASH_TABLE_CAPACITY;
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("해시 함수가 int형, string형 키에 대해서만 구현되었습니다.");
+                }
+                return hash;
+            }
+
+            private TValue Get(TKey key)
+            {
+                int hash = GetHashCode(key);
+                while (data[hash] != null && !data[hash].Key.Equals(key))
+                {
+                    hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                }
+                return data[hash] != null ? data[hash].Value : default(TValue);
+            }
+
+            public void Add(TKey key, TValue value)
+            {
+                int hash = GetHashCode(key);
+                while (data[hash] != null && !data[hash].Key.Equals(key))
+                {
+                    hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                }
+                data[hash] = new KeyValuePairItem<TKey, TValue>(key, value);
+                size++;
+            }
+
+            public void Remove(TKey key)
+            {
+                int hash = GetHashCode(key);
+                while (data[hash] != null && !data[hash].Key.Equals(key))
+                {
+                    hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                }
+
+                if (data[hash] != null)
+                {
+                    data[hash] = null;
+                    size--;
+                }
+            }
+
+            public int Count
+            {
+                get
+                {
+                    return size;
+                }
+            }
+
+            public TValue this[TKey key]
+            {
+                get
+                {
+                    return Get(key);
+                }
+                set
+                {
+                    int hash = GetHashCode(key);
+                    while (data[hash] != null && !data[hash].Key.Equals(key))
+                    {
+                        hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                    }
+
+                    if (data[hash] != null)
+                    {
+                        data[hash] = new KeyValuePairItem<TKey, TValue>(key, value);
+                    }
+                }
+            }
+
+            public bool ContainsKey(TKey key)
+            {
+                int hash = GetHashCode(key);
+                while (data[hash] != null && !data[hash].Key.Equals(key))
+                {
+                    hash = (hash + 1) % HASH_TABLE_CAPACITY;
+                }
+
+                return data[hash] != null;
+            }
+
+            public string ToString()
+            {
+                StringBuilder sb = new StringBuilder();
+
+                sb.Append("<HashTable>");
+                sb.AppendLine();
+
+                for (int i = 0; i < data.Length; i++)
+                {
+                    KeyValuePairItem<TKey, TValue> item = data[i];
+                    if (item != null)
+                    {
+                        sb.Append($" Key(hash, index) : {item.Key}({GetHashCode(item.Key)}, {i}), Value : {item.Value}");
+                        sb.AppendLine();
+                    }
+                }
+                return sb.ToString();
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            CustomDictionary<string, string> hashTable = new CustomDictionary<string, string>();
+            hashTable.Add("Tokyo", "Japan");
+            hashTable.Add("Seoul", "Korea");
+            hashTable.Add("Beijing", "China");
+            hashTable.Add("Paris", "France");
+            hashTable.Add("Washington", "USA");
+            hashTable.Add("Brazilia", "Brazil");
+            Console.WriteLine(hashTable.ToString());
+
+            CustomDictionary<int, int> intDict = new CustomDictionary<int, int>();
+            intDict.Add(1000, 10000);
+            intDict.Add(1001, 9000);
+            intDict.Add(1002, 8000);
+            intDict.Add(1003, 7000);
+            intDict.Add(1004, 6000);
+            intDict.Add(2000, 5000);
+            intDict.Add(1005, 4000);
+            Console.WriteLine(intDict.ToString());
+        }
+    }
+}
